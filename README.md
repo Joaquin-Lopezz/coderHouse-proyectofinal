@@ -17,6 +17,11 @@ Este proyecto de E-commerce desarrollado en Node.js incluye un sistema de autent
 - **session** (v0.1.0): Middleware de sesión para Express.js.
 - **socket-io** (v4.7.5): chat online con los usuarios
 - **nodemailer** (v6.9.14): para manejar el envio de ticket mediante Gmail
+- **supertest**: Utilizado para testear los campos de sesiones, productos y carritos.
+
+## Documentación
+
+La documentación del proyecto está disponible a través de Swagger.
 
 
 
