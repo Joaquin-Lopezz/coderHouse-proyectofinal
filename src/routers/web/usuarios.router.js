@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { editUser,vistaReset,vistaRegistro, vistaResetPassword, vistasAdmin, vistasProfile } from '../../controllers/router/usuarios.controllers.js'
-import { autorizacionAdmin, autorizacionUsuario } from '../../middlewares/autorizaciones.js'
+import { vistaDocumentacion,editUser,vistaReset,vistaRegistro, vistaResetPassword, vistasAdmin, vistasProfile } from '../../controllers/router/usuarios.controllers.js'
+import { statusDocumentacion,autorizacionAdmin, autorizacionUsuario } from '../../middlewares/autorizaciones.js'
 
 export const usuariosRouter = Router()
 
@@ -25,6 +25,9 @@ usuariosRouter.get('/profile',autorizacionUsuario,vistasProfile )
 
 
 usuariosRouter.get('/admin',autorizacionAdmin, vistasAdmin)
+
+
+usuariosRouter.get('/documentacion',autorizacionUsuario,statusDocumentacion,vistaDocumentacion)
 
 
 

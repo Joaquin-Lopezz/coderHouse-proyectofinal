@@ -21,7 +21,7 @@ export class usuariosDaoMongoose {
     }
 
     async login(email) {
-        return this.usuariosModel.model('usuarios').findOne({ email }).lean();
+        return this.usuariosModel.model('usuarios').findOne({ email })
     }
     async findOneAndUpdate(datos) {
         return this.usuariosModel.findOneAndUpdate(datos);

@@ -30,6 +30,10 @@ export function vistasAdmin(req, res) {
         pageTitle: 'Administrador',
     });
 }
+export function vistaDocumentacion(req,res,next) {
+    return res.render('cargaDocumentos.handlebars')
+}
+
 
 export async function vistaReset(req, res) {
     try {
@@ -40,3 +44,5 @@ export async function vistaReset(req, res) {
         });
     } catch (error) {}
 }
+
+

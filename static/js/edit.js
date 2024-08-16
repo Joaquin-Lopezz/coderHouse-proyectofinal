@@ -1,43 +1,39 @@
-const formEdit = document.querySelector('form')
-const inputs = document.querySelectorAll('input')
+document
+    .getElementById('documentUploadForm')
+    .addEventListener('submit', async function (event) {
+        event.preventDefault();
 
-window.addEventListener('load', async event => {
-  const response = await fetch('/api/usuarios/current')
-  if (response.status === 403) {
-    alert('necesitas loguearte para modificar tus datos!')
-    return (window.location.href = '/login')
-  }
+        const formData = new FormData();
 
-  const result = await response.json()
-  const usuario = result.payload
+        formData.append(
+            'profile-image',
+            document.getElementById('profile-image').files[0]
+        );
 
-  inputs[0].value = usuario.nombre
-  inputs[1].value = usuario.apellido
-  //inputs[2].value = usuario.email
-})
+        const emailUsuario = localStorage.getItem('emailUsuario');
+        const nombre = document.getElementById('inputNombre').value;
+        const apellido = document.getElementById('inputApellido').value;
 
-formEdit?.addEventListener('submit', async event => {
-  event.preventDefault()
-
-  const formData = new FormData(formEdit)
-  
-  //formData.append('email', inputs[2].value)
-
-  
-  const body = new URLSearchParams(formData)
-
-  const response = await fetch('/api/usuarios', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body
-  })
-
-  if (response.status === 200) {
-    window.location.href = '/profile'
-  } else {
-    const error = await response.json()
-    alert(error.message)
-  }
-})
+        formData.append('nombre', nombre);
+        formData.append('apellido', apellido);
+        try {
+            const response = await fetch(
+                `/api/usuarios/${emailUsuario}/documents`,
+                {
+                    method: 'POST',
+                    body: formData,
+                }
+            );
+            if (response.ok) {
+                const result = await response.json();
+                alert('perfil actualizado');
+                window.location.href = '/profile'
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.message}`);
+            }
+        } catch (error) {
+            console.error('Error al subir los documentos:', error);
+            alert('Hubo un error al subir los documentos. Intenta nuevamente.');
+        }
+    });

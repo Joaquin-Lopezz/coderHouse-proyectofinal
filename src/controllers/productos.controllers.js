@@ -2,8 +2,10 @@ import { eliminacionCaracteresNoDesados } from '../middlewares/validacionProduct
 import { productoService } from '../services/productos.service.js';
 import { CustomError } from '../utils/CustumErrors.js';
 import { TIPOS_ERROR } from '../utils/EError.js';
+import { logger } from '../utils/logger.js';
 import { generateProducts } from '../utils/mock.js';
-
+import upload from '../utils/multerConfig.js';
+import path from 'path';
 export async function getcontroller(req, res, next) {
     try {
         const productos = await productoService.readProduct();
@@ -15,29 +17,39 @@ export async function getcontroller(req, res, next) {
 }
 
 export async function postcontroller(req, res, next) {
-    try {
-        const newProduct = req.body;
-
-        const productIdExists = await productoService.productById(
-            newProduct['_id']
-        );
-        if (productIdExists) {
-            return next(
-                CustomError.createError(
-                    `el producto ya existe `,
-                    null,
-                    `el producto ya existe `,
-                    TIPOS_ERROR.PRODUCTO_EXISTENTE
-                )
-            );
+    upload.single('productImage')(req, res, async (err) => {
+        // Manejo del error
+        if (err) {
+            console.log('Error en Multer:', err);
+            return res.status(400).json({ error: err.message });
         }
-        await eliminacionCaracteresNoDesados(newProduct);
-     
-        const producto = await productoService.createProduct(newProduct);
-        res.setHeader('Content-Type', 'application/json');
-        res.status(200).json(producto);
-    } catch (error) {
-        console.log(error)
+        try {
+            const newProduct = req.body;
+
+            // Manejo del archivo
+            if (req.file) {
+                const filePath = req.file.path;
+                const basePath = 'C:/Users/Tap/Desktop/proyecto final';
+                const relativePath = path.relative(basePath, filePath);
+                const normalizedPath = path
+                    .normalize(relativePath)
+                    .replace(/\\/g, '/');
+
+                newProduct.thumbnail = normalizedPath; // Asigna la ruta del archivo al producto
+            }
+
+            const producto = await productoService.createProduct(newProduct);
+            res.setHeader('Content-Type', 'application/json');
+            res.status(200).json(producto);
+        } catch (error) {
+            console.error(error);
+            next(error);
+        }
+    });
+}
+
+/*
+ await eliminacionCaracteresNoDesados(newProduct);
         if (error.name === 'MongoServerError') {
             return next(
                 CustomError.createError(
@@ -71,7 +83,7 @@ export async function postcontroller(req, res, next) {
             next(error); // Pasar cualquier otro error al siguiente middleware de manejo de errores
         }
     }
-}
+}*/
 
 export async function deletecontroller(req, res, next) {
     try {

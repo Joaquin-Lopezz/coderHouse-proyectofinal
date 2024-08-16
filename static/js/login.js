@@ -13,7 +13,7 @@ formLogin?.addEventListener('submit', async (event) => {
      
         body: new URLSearchParams(new FormData(formLogin)),
     });
-   
+    
     if (response.status === 201) {
         window.location.href = '/profile';
     } else {

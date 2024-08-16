@@ -11,32 +11,38 @@ class UsuariosService {
         return await usuariosDao.createUsuario(newUser);
     }
 
-        async findOneUser(datos) {
-            try {
-                const usuariogit = await usuariosDao.findOneUser(datos);
-                const usuario = usuariogit[0];
-
-                let datosUsuario = null
-                if(usuario){
-                    datosUsuario = {
-                        id  : usuario['_id'],
-                        email: usuario['email'],
-                        nombre: usuario['nombre'],
-                        apellido: usuario['apellido'],
-                        rol: usuario['rol'],
-
-                    };
-                }
-          
-            
-                
-
-                return datosUsuario;
-            } catch (error) {
-                logger.error(`${error}`);
-                throw error;
+    async findOneUser(datos) {
+        try {
+            const usuariogit = await usuariosDao.findOneUser(datos);
+            const usuario = usuariogit[0];
+            const documents =  usuario.documents;
+            let profileImageReference = null
+       
+            const profileImageDocument = documents.find(doc => doc.name === 'profile-image')
+            if(profileImageDocument){
+                profileImageReference = profileImageDocument.reference
             }
+            let datosUsuario = null;
+            if (usuario) {
+                datosUsuario = {
+                    id: usuario['_id'],
+                    email: usuario['email'],
+                    nombre: usuario['nombre'],
+                    apellido: usuario['apellido'],
+                    rol: usuario['rol'],
+                    status: usuario['status_document'],
+                    profileImage: profileImageReference
+                };
+            }
+      
+    
+
+            return datosUsuario;
+        } catch (error) {
+            logger.error(`${error}`);
+            throw error;
         }
+    }
     async findOneUserMongo(datos) {
         try {
             const usuarioMongo = await usuariosDao.findOneUserMongo(datos);
@@ -72,7 +78,6 @@ class UsuariosService {
                 };
             } else {
                 const usuario = await usuariosDao.login(email);
-
                 if (!usuario) {
                     throw CustomError.createError(
                         'UsuarioNoEncontrado',
@@ -91,6 +96,9 @@ class UsuariosService {
                         TIPOS_ERROR.AUTENTICATION
                     );
                 }
+
+                usuario['last_connection'] = new Date();
+                await usuario.save();
 
                 datosUsuario = {
                     email: usuario['email'],
@@ -131,7 +139,6 @@ class UsuariosService {
         const passCript = hashear(data.password1);
 
         if (hasheadasSonIguales(data.password1, user.password)) {
-        
             return { error: true, code: 'PASSWORDS_ARE_SAME' };
         }
 

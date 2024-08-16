@@ -40,7 +40,7 @@ function productosAddcarrito(productos, carritoId, email, rol) {
                    
                 </div>
                 <div class="producto-image-container">
-                    <img src="/images/${producto.thumbnail}" alt="${
+                    <img src="${producto.thumbnail}" alt="${
             producto.title
         }" class="thumbnail-image"/>
                 </div>

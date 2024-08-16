@@ -1,11 +1,13 @@
 import { transport } from '../config.js';
+
 import { usuariosService } from '../services/usuarios.service.js';
 import { hashear } from '../utils/criptografia.js';
 import { CustomError } from '../utils/CustumErrors.js';
 import { TIPOS_ERROR } from '../utils/EError.js';
-import { logger } from '../utils/logger.js';
 import bcrypt from 'bcrypt';
-
+import upload from '../utils/multerConfig.js';
+import path from 'path';
+import { logger } from '../utils/logger.js';
 export async function crearUsuario(req, res, next) {
     try {
         req.body.password = hashear(req.body.password);
@@ -33,13 +35,12 @@ export async function getUserLogeado(req, res, next) {
         const usuario = await usuariosService.findOneUser(
             { email: req['user'].email },
             { password: 0 }
-        );  
- 
-        
+        );
 
         res.json({ status: 'success', payload: usuario });
     } catch (error) {
-        next(error);
+        req.logger.error(error);
+        next();
     }
 }
 
@@ -108,12 +109,133 @@ export async function editUser(req, res, next) {
         next(error);
     }
 }
+
+export async function newDatos(req, res, next) {
+    try {
+        upload.single('profileImage')(req, res, (err) => {
+            if (err) {
+                console.log('Error en Multer:', err);
+                return res.status(400).json({ error: err.message });
+            }
+
+            // `req.file` contendrá el archivo cargado
+            console.log(req);
+            console.log(req.files); // Información sobre el archivo
+
+            // Maneja los datos del usuario aquí (puedes acceder a `req.body` para otros campos)
+            const { nombre, apellido } = req.body;
+            console.log('Nombre:', nombre);
+            console.log('Apellido:', apellido);
+
+            // Respuesta exitosa
+            res.json({ message: 'Datos actualizados correctamente' });
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function premium(req, res, next) {
     const { email, rol } = req.body;
     const rolUser = await usuariosService.updateRol(email, rol);
-    req.user.rol = rolUser.rol
+    req.user.rol = rolUser.rol;
 
-    return res.status(200).json({ message: rolUser.rol});
+    return res.status(200).json({ message: rolUser.rol });
+}
+
+export async function documentacion(req, res, next) {
+    try {
+        await upload.fields([
+            { name: 'profile-image', maxCount: 1 },
+            { name: 'productImage', maxCount: 1 },
+            { name: 'document', maxCount: 10 },
+            { name: 'identificacion', maxCount: 1 },
+            { name: 'comprobanteDomicilio', maxCount: 1 },
+            { name: 'comprobanteCuenta', maxCount: 1 },
+        ])(req, res, async (err) => {
+            if (err) {
+                console.log('Error en Multer:', err);
+                return res.status(400).json({ error: err.message });
+            }
+            const mail = req.params.email; // Obtiene el ID del usuario de los parámetros de la URL
+            const user = await usuariosService.findOneUserMongo({
+                email: mail,
+            }); // Busca el usuario en la base de datos por ID
+
+            if (!user) {
+                return res
+                    .status(404)
+                    .json({ message: 'Usuario no encontrado' }); // Devuelve un error 404 si el usuario no existe
+            }
+
+            const documents = [];
+            const basePath = 'C:/Users/Tap/Desktop/proyecto final';
+            if (req.files['profile-image']) {
+                const filePath = req.files['profile-image'][0].path;
+                const relativePath = path.relative(basePath, filePath);
+                const normalizedPath = path
+                    .normalize(relativePath)
+                    .replace(/\\/g, '/');
+                documents.push({
+                    name: 'profile-image',
+                    reference: normalizedPath,
+                });
+            }
+
+            if (req.files['identificacion']) {
+                const filePath = req.files['identificacion'][0].path;
+                const relativePath = path.relative(basePath, filePath);
+                const normalizedPath = path
+                    .normalize(relativePath)
+                    .replace(/\\/g, '/');
+                documents.push({
+                    name: 'identificacion',
+                    reference: normalizedPath,
+                });
+            }
+            if (req.files['comprobanteDomicilio']) {
+                const filePath = req.files['comprobanteDomicilio'][0].path;
+                const relativePath = path.relative(basePath, filePath);
+                const normalizedPath = path
+                    .normalize(relativePath)
+                    .replace(/\\/g, '/');
+                documents.push({
+                    name: 'comprobanteDomicilio',
+                    reference: normalizedPath,
+                });
+            }
+            if (req.files['comprobanteCuenta']) {
+                const filePath = req.files['comprobanteCuenta'][0].path;
+                const relativePath = path.relative(basePath, filePath);
+                const normalizedPath = path
+                    .normalize(relativePath)
+                    .replace(/\\/g, '/');
+                documents.push({
+                    name: 'comprobanteCuenta',
+                    reference: normalizedPath,
+                });
+            }
+            if (req.body.nombre) {
+                user.nombre = req.body.nombre;
+            }
+            if (req.body.apellido) {
+                user.apellido = req.body.apellido;
+            }
+
+            user.documents = documents;
+            user.status_document = true;
+
+            await user.save(); // Guarda los cambios en la base de datos
+
+            // Responde con un mensaje de éxito y la información de los archivos subidos
+            res.status(200).json({
+                message: 'Archivos subidos exitosamente',
+                files: req.files, // Contiene la información de los archivos subidos
+            });
+        });
+    } catch (error) {
+        res.logger.error(error); // Devuelve un error 500 si ocurre algún problema
+    }
 }
 
 export async function newPassword(req, res, next) {

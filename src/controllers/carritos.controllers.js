@@ -11,7 +11,7 @@ export async function postCartsController(req, res, next) {
         res.setHeader('Content-Type', 'application/json');
         res.status(200).json({ carrito });
     } catch (error) {
-        console.log(error)
+ 
         if (error instanceof CustomError) {
             res.status(error.code).json({ error: error.message });
         } else {

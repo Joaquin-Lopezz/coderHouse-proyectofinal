@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (response.status === 200) {
             alert('Producto agregado a la base de datos');
-            location.reload();
+            //location.reload();
         }
         if (response.status === 500) {
             alert('Complete todos los datos');
