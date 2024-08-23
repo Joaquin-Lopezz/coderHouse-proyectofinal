@@ -1,3 +1,4 @@
+
 export function soloLogueadosApi(req, res, next) {
     if (!req.isAuthenticated()) {
         return res
@@ -33,7 +34,16 @@ export function autorizacionProductos(req, res, next) {
         res.redirect('/admin');
     }
 }
+export function statusDocumentacion(req,res,next){
 
+    if(req.user.status_document == null){
+        next()
+    }else{
+        return res.redirect('/profile')
+    }
+    
+    
+}
 export function autorizacionAdmin(req, res, next) {
     if (!req.user) {
         return res.redirect('/login');
@@ -44,3 +54,4 @@ export function autorizacionAdmin(req, res, next) {
         res.send('acceso denegado');
     }
 }
+

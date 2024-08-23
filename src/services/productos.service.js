@@ -1,7 +1,8 @@
+import { transport } from '../config.js';
 import { getDaoProductos } from '../dao/productos/productos.dao.js';
 import { carritoService } from './carrito.service.js';
 
- const productosDao = getDaoProductos();
+const productosDao = getDaoProductos();
 
 class ProductoService {
     async readProduct() {
@@ -20,13 +21,42 @@ class ProductoService {
         return await productosDao.deleteOne(id);
     }
 
-    async updateOne(id,datos) {
-       
+    async emailProductoEliminado(producto) {
+        try {
+            await transport.sendMail({
+                from: '<joaquin.ariel.lopez.98@gmail.com>',
+                to: producto.owner,
+                subject: 'se ha eliminado su producto',
+                html: `
+                                <div>
+                                    <h1> _id: $${producto._id}</h1>
+                                    <h1>title:${producto.title}</h1>
+                                    <h1>description:${producto.description}</h1>
+                                    <h1>stock:${producto.stock}</h1>
+                                    <h1>price:${producto.price}</h1>
+                                </div>
+                                    `,
+                attachments: [],
+            });
+            return;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    async eliminarProductoAdmin(admin,id) {
+        if (admin) {
+            const producto = await this.productById(id);
+            if (producto.owner !== 'admin') {
+                productoService.emailProductoEliminado(producto);
+            }
+        }
+    }
+    async updateOne(id, datos) {
         return await productosDao.updateOne(id, datos);
     }
-    async compareStock(idCarrito,productosCarritos){
+    async compareStock(idCarrito, productosCarritos) {
         let amount = 0;
-     
+
         for (const product of productosCarritos.products) {
             const quantityBuyProduct = product.quantity;
             const id = product.idProduct;
@@ -38,15 +68,15 @@ class ProductoService {
                 const idProduct = { _id: id };
                 const nuevoStock = { stock: restaStock };
                 await productosDao.updateOne(idProduct, nuevoStock);
-              
+
                 amount += product.price * quantityBuyProduct;
                 //eliminar producto del carrito
                 await carritoService.buscarIndiceDelProducto(idCarrito, id);
             }
         }
-      
+
         return amount;
-    } 
+    }
 }
 
 export const productoService = new ProductoService();

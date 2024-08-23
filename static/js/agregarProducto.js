@@ -4,51 +4,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     const productos = await fetchData();
     mostrarProductos(productos);
 
+    document.getElementById('logout').addEventListener('click', logout);
+    document.getElementById('usuarios').addEventListener('click', usuarios);
 
-    document.getElementById('logout').addEventListener('click',logout );
+    document
+        .getElementById('agregar-producto')
+        .addEventListener('click', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(formProducto);
 
+            const response = await fetch('/api/productos/', {
+                method: 'POST',
+                body: formData,
+            });
 
-    formProducto?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const title = formProducto.title.value;
-        const description = formProducto.description.value;
-        const price = parseInt(formProducto.price.value);
-        const thumbnail = formProducto.thumbnail.value;
-        const code = formProducto.code.value;
-        const stock = parseInt(formProducto.stock.value);
-        const category = formProducto.category.value;
-        const statusCheckbox = document.getElementById('status');
-
-        const status = statusCheckbox.checked;
-
-        const queryString = new URLSearchParams({
-            title,
-            description,
-            price,
-            thumbnail,
-            code,
-            stock,
-            category,
-            status,
+            if (response.status === 200) {
+                alert('Producto agregado a la base de datos');
+                location.reload();
+            }
+            if (response.status === 500) {
+                alert('Complete todos los datos');
+            }
         });
-
-        const response = await fetch('/api/productos/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: queryString,
-        });
-
-        if (response.status === 200) {
-            alert('Producto agregado a la base de datos');
-            location.reload();
-        }
-        if (response.status === 500) {
-            alert('Complete todos los datos');
-        }
-    });
 });
 
 const fetchData = async () => {
@@ -86,7 +63,9 @@ function mostrarProductos(productos) {
          <div class="product-card">
     <h2 class="product-title">${producto.title}</h2>
     <div class="product-image-container">
-        <img src="/static/images/${producto.thumbnail}" alt="Thumbnail del producto" class="product-thumbnail">
+        <img src="${
+            producto.thumbnail
+        }" alt="Thumbnail del producto" class="product-thumbnail">
     </div>
     <div class="product-details">
         <p><strong>ID:</strong> ${producto._id}</p>
@@ -96,10 +75,14 @@ function mostrarProductos(productos) {
         <p><strong>Stock:</strong> ${producto.stock}</p>
         <p><strong>Categoría:</strong> ${producto.category}</p>
         <p><strong>Propietario:</strong> ${producto.owner}</p>
-        <p><strong>Estado:</strong> ${producto.status ? 'Activo' : 'Inactivo'}</p>
+        <p><strong>Estado:</strong> ${
+            producto.status ? 'Activo' : 'Inactivo'
+        }</p>
     </div>
     <div class="product-actions">
-        <button data-id="${producto._id}" class="btn btn-eliminar">Eliminar</button>
+        <button data-id="${
+            producto._id
+        }" class="btn btn-eliminar">Eliminar</button>
         <button data-id="${producto._id}" class="btn btn-editar">Editar</button>
     </div>
 </div>
@@ -114,11 +97,13 @@ function mostrarProductos(productos) {
 
         btnEliminar.addEventListener('click', async () => {
             try {
+                const admin = 'admin';
                 const response = await fetch(`/api/productos/${producto._id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    body: JSON.stringify({ admin }),
                 });
 
                 if (response.status === 200) {
@@ -246,7 +231,9 @@ async function enviarFormularioEdicion(productId, formEdicion) {
         alert('Error al actualizar el producto');
     }
 }
-
+async function usuarios() {
+    window.location.href = '/usuarios';
+}
 async function logout(event) {
     const response = await fetch('/api/sesiones/current', {
         method: 'DELETE',

@@ -9,6 +9,13 @@ export const usuariosSchema = new Schema(
         nombre: { type: String, required: true },
         apellido: { type: String, default: '(sin especificar)' },
         rol: { type: String, default: 'usuario' },
+        documents: [{
+            name: { type: String, required: true },
+            reference: { type: String, required: true }
+          }
+        ],
+        status_document: { type: String, default: null},
+        last_connection: { type: Date, default: Date.now },
         resetPasswordToken: { type: String },
         resetPasswordExpires: { type: Date },   
     },

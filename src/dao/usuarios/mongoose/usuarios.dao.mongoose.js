@@ -14,14 +14,30 @@ export class usuariosDaoMongoose {
 
         return toPOJO(usuario);
     }
+    async findUsersOlds(dosDiasAtras) {
+        const usuariosAntiguos = await this.usuariosModel.find({
+            last_connection: { $lt: dosDiasAtras },
+        });
+        return usuariosAntiguos;
+    }
+    async deleteUsers(dosDiasAtras) {
+        const resultado = await this.usuariosModel.deleteMany({
+            last_connection: { $lt: dosDiasAtras },
+        });
+        return resultado;
+    }
+
     async findOneUserMongo(datos) {
         const usuario = await this.usuariosModel.findOne(datos);
 
         return usuario;
     }
 
+    async allUsers() {
+        return this.usuariosModel.find({});
+    }
     async login(email) {
-        return this.usuariosModel.model('usuarios').findOne({ email }).lean();
+        return this.usuariosModel.model('usuarios').findOne({ email });
     }
     async findOneAndUpdate(datos) {
         return this.usuariosModel.findOneAndUpdate(datos);
@@ -39,7 +55,6 @@ export class usuariosDaoMongoose {
             { rol: 'premium' },
             { new: true }
         );
-    
 
         return update;
     }
@@ -50,8 +65,7 @@ export class usuariosDaoMongoose {
             { rol: 'usuario' },
             { new: true }
         );
-      
 
-        return  update ;
+        return update;
     }
 }

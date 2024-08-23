@@ -1,6 +1,6 @@
 export const PORT = 8080;
 export const MONGODB_CNX_STR =
-    'mongodb+srv://UserCoder:YzyzdHbr8N94AFkK@cluster0.ixumopf.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0';
+    'mongodb+srv://UserCoder:YzyzdHbr8N94AFkK@cluster0.ixumopf.mongodb.net/proyectoFinal?retryWrites=true&w=majority&appName=Cluster0';
 export const SESSION_SECRET = 'SecretCoder';
 export const GITHUB_APP_ID = 901083;
 export const GITHUB_CLIENT_ID = 'Iv23liZ3pXxNP39n0V8m';

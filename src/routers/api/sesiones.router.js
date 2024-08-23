@@ -28,7 +28,7 @@ sesionesRouter.delete('/current', (req, res) => {
             res.json({ status: 'success', message: 'logout OK' });
         });
     } catch (error) {
-        console.log(error)
+   
         next(error)    
     }
 });

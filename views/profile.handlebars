@@ -26,8 +26,15 @@
     <main>
         <!-- Información del Perfil -->
         <section class="profile-info" id="profileInfo">
-            <h1>Mi Perfil</h1>
-            <ul>
+            
+            <ul>   
+              <div class="profile-image">
+        <!-- Imagen de perfil -->
+              <h1>
+                <img id="profilePicture" src="static\images\profile.jpg" alt="Imagen de perfil" />
+               </h1>
+             </div>
+              
                 <li>Nombre: <span id="spanNombre"></span></li>
                 <li>Apellido: <span id="spanApellido"></span></li>
                 <li>Correo electrónico: <span id="spanEmail"></span></li>
@@ -36,6 +43,7 @@
             <div class="profile-buttons">
                 <button onclick="window.location.href='/edit'">Editar mis datos</button>
                 <button id="btnPremium">Hacerme Premium</button>
+                <button id= "documentos">cargar credenciales</button>
                 <button id="logout">Cerrar sesión</button>
             </div>
         </section>

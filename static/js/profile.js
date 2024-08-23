@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartInfo = document.getElementById('cartInfo');
     const overlay = document.getElementById('overlay');
     const spans = document.querySelectorAll('span');
+  
 
     // Inicialmente oculta la sección de perfil y el overlay
     profileInfo.style.display = 'none';
@@ -65,11 +66,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             const usuario = result.payload;
 
+            const profileImage = document.getElementById('profilePicture');
+            if (usuario.profileImage) {
+                profileImage.src = usuario.profileImage;
+            }
             spans[0].textContent = usuario.nombre;
             spans[1].textContent = usuario.apellido;
             spans[2].textContent = usuario.email;
             spans[3].textContent = usuario.rol;
+            usuario.profileImage;
             localStorage.setItem('nombreUsuario', usuario.nombre);
+            localStorage.setItem('emailUsuario', usuario.email);
+
+            const profileHeading = profileInfo.querySelector('h1');
+         
+            if (profileHeading) {
+                const verificationIcon = document.createElement('span');
+                verificationIcon.textContent = '✔️';
+                verificationIcon.style.color = usuario.status;
+                ('green');
+                verificationIcon.style.opacity = usuario.status ? '1' : '0.2    ';
+                profileHeading.appendChild(verificationIcon);
+            }
+
             if (usuario.rol === 'premium') {
                 var btnProductos = document.createElement('button');
                 btnProductos.id = 'btnProductos';
@@ -83,11 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     profileActions.appendChild(btnProductos);
                 }
             }
-       
 
-            updatePremiumButton(usuario.rol, usuario.email);
-           
+            updatePremiumButton(usuario.rol, usuario.email, usuario.status);
+          
+            if(usuario.status !== 'true'){
+                cargarDocumentos(usuario.status);
+            }else{
+                var documentosButton = document.getElementById('documentos');
+                documentosButton.style.display = 'none';
+            }
+
             await loadCart(usuario.id, usuario.email);
+
             document.getElementById('logout').addEventListener('click', logout);
             document
                 .getElementById('btnProductos')
@@ -100,8 +126,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function updatePremiumButton(rol, email) {
+    async function cargarDocumentos() {
+        const documentosButton = document.getElementById('documentos');
+        documentosButton.addEventListener('click', () => {
+            window.location.href = `/documentacion`;
+        });
+    }
+
+    async function updatePremiumButton(rol, email, status) {
         const premiumButton = document.getElementById('btnPremium');
+
+        if (status === null) {
+            premiumButton.style.opacity = '0.3';
+            premiumButton.style.backgroundColor = '#808080';
+            premiumButton.addEventListener('click', () => {
+                alert('Primero tienes que cargar las credenciales');
+            });
+            return;
+        }
         premiumButton.textContent =
             rol === 'premium' ? 'Quitar Premium' : 'Hacerme Premium';
         premiumButton.addEventListener('click', () =>
@@ -118,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ email, rol }),
             });
-        
+
             if (response.ok) {
                 const data = await response.json();
                 alert(`tu rol cambio a: ${data.message}`);
@@ -138,6 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
+                localStorage.removeItem('emailUsuario');
+                localStorage.removeItem('nombreUsuario');
                 window.location.href = '/login';
             } else {
                 const error = await response.json();
@@ -154,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
             });
             const carrito = await carritoResponse.json();
-           
+
             renderCartProducts(carrito.carrito, email);
         } catch (error) {
             console.error('Error cargando el carrito:', error);
@@ -168,14 +212,13 @@ document.addEventListener('DOMContentLoaded', () => {
         productos.products.forEach((producto) => {
             const totalProducto = producto.price * producto.quantity;
             amount += totalProducto;
-            
-           
+
             const productoElem = document.createElement('div');
             const botonIdDelete = `delete-${producto.idProduct}`;
             productoElem.innerHTML = `
              <div style="border: 1px solid #e0e0e0; padding: 12px; margin-bottom: 15px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); background-color: #f9f9f9; display: flex; align-items: center;">
     <div style="flex-shrink: 0; margin-right: 12px;">
-        <img src="/static/images/${producto.thumbnail}" alt="Thumbnail del producto" style="width: 120px; height: 90px; border-radius: 6px;">
+        <img src="${producto.thumbnail}" alt="Thumbnail del producto" style="width: 120px; height: 90px; border-radius: 6px;">
     </div>
     <div>
         <h2 style="font-size: 18px; margin-bottom: 8px; color: #333; text-transform: capitalize;">${producto.title}</h2>

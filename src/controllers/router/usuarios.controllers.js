@@ -24,11 +24,18 @@ export function vistasProfile(req, res) {
         user: req.user,
     });
 }
-
+export function usuarios(req, res) {
+    res.render('usuarios.handlebars', {
+        pageTitle: 'usuarios',
+    });
+}
 export function vistasAdmin(req, res) {
     res.render('admin.handlebars', {
         pageTitle: 'Administrador',
     });
+}
+export function vistaDocumentacion(req, res, next) {
+    return res.render('cargaDocumentos.handlebars');
 }
 
 export async function vistaReset(req, res) {
@@ -36,7 +43,7 @@ export async function vistaReset(req, res) {
         const dato = encodeURIComponent(req.params.token);
         res.render('reset.handlebars', {
             pageTitle: 'Reestablecer contraseña',
-            decodedToken: dato
+            decodedToken: dato,
         });
     } catch (error) {}
 }

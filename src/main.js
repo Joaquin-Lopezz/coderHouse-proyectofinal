@@ -3,9 +3,10 @@ import mongoose from 'mongoose';
 import { engine } from 'express-handlebars';
 import http from 'http';
 import { Server } from 'socket.io';
-import path from 'path';
+
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUiExpress  from 'swagger-ui-express';
+//
 import { MONGODB_CNX_STR, PORT, swaggerOptions } from './config.js';
 import { apiRouter } from './routers/api/apirest.router.js';
 import { webRouter } from './routers/web/web.router.js';
@@ -40,7 +41,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configuración de rutas
+
+
 app.use('/static', express.static('./static'));
+
+
 app.use('/', webRouter);
 app.use('/api', apiRouter);
 
@@ -57,7 +62,6 @@ io.on('connection', (socket) => {
     });
 });
 
-app.use(express.static(path.join(path.resolve(), 'static')));
 
 
 app.use(errorHandler);
