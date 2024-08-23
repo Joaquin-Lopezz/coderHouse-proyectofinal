@@ -2,7 +2,6 @@ import { eliminacionCaracteresNoDesados } from '../middlewares/validacionProduct
 import { productoService } from '../services/productos.service.js';
 import { CustomError } from '../utils/CustumErrors.js';
 import { TIPOS_ERROR } from '../utils/EError.js';
-import { logger } from '../utils/logger.js';
 import { generateProducts } from '../utils/mock.js';
 import upload from '../utils/multerConfig.js';
 import path from 'path';
@@ -18,15 +17,12 @@ export async function getcontroller(req, res, next) {
 
 export async function postcontroller(req, res, next) {
     upload.single('productImage')(req, res, async (err) => {
-        // Manejo del error
         if (err) {
             console.log('Error en Multer:', err);
             return res.status(400).json({ error: err.message });
         }
         try {
             const newProduct = req.body;
-
-            // Manejo del archivo
             if (req.file) {
                 const filePath = req.file.path;
                 const basePath = 'C:/Users/Tap/Desktop/proyecto final';
@@ -37,68 +33,65 @@ export async function postcontroller(req, res, next) {
 
                 newProduct.thumbnail = normalizedPath; // Asigna la ruta del archivo al producto
             }
+            await eliminacionCaracteresNoDesados(newProduct);
 
             const producto = await productoService.createProduct(newProduct);
             res.setHeader('Content-Type', 'application/json');
             res.status(200).json(producto);
         } catch (error) {
-            console.error(error);
-            next(error);
+            if (error.name === 'MongoServerError') {
+                return next(
+                    CustomError.createError(
+                        'clave Duplicada',
+                        error,
+                        'clave Duplicada',
+                        TIPOS_ERROR.PRODUCTO_EXISTENTE
+                    )
+                );
+            }
+            if (error.name === 'ValidationError') {
+                return next(
+                    CustomError.createError(
+                        'faltan completar datos',
+                        error,
+                        'numeros negativos o faltan completar datos',
+                        TIPOS_ERROR.ARGUMENTOS_INVALIDOS
+                    )
+                );
+            }
+            if (error.name === 'StrictModeError') {
+                return next(
+                    CustomError.createError(
+                        'Datos de producto inválidos',
+                        error,
+                        'Datos de producto inválidos',
+                        TIPOS_ERROR.ARGUMENTOS_INVALIDOS
+                    )
+                );
+            } else {
+                next(error);
+            }
         }
     });
 }
 
-/*
- await eliminacionCaracteresNoDesados(newProduct);
-        if (error.name === 'MongoServerError') {
-            return next(
-                CustomError.createError(
-                    'clave Duplicada',
-                    error,
-                    'clave Duplicada',
-                    TIPOS_ERROR.PRODUCTO_EXISTENTE
-                )
-            );
-        }
-        if (error.name === 'ValidationError') {
-            return next(
-                CustomError.createError(
-                    'faltan completar datos',
-                    error,
-                    'numeros negativos o faltan completar datos',
-                    TIPOS_ERROR.ARGUMENTOS_INVALIDOS
-                )
-            );
-        }
-        if (error.name === 'StrictModeError') {
-            return next(
-                CustomError.createError(
-                    'Datos de producto inválidos',
-                    error,
-                    'Datos de producto inválidos',
-                    TIPOS_ERROR.ARGUMENTOS_INVALIDOS
-                )
-            );
-        } else {
-            next(error); // Pasar cualquier otro error al siguiente middleware de manejo de errores
-        }
-    }
-}*/
-
 export async function deletecontroller(req, res, next) {
     try {
         const id = req.params.pid;
+        const { admin } = req.body;
+        await productoService.eliminarProductoAdmin(admin, id);
+
         const productoDelete = await productoService.deleteOne({ _id: id });
         if (productoDelete.deletedCount > 0) {
             return res.json({
                 message: `Se eliminó el producto con Id: ${id}`,
             });
-        } else {
-            return res
-                .status(404)
-                .send(`no se encontro ningun producto con Id: ${id}`);
         }
+        return res
+            .status(404)
+            .send(`no se encontro ningun producto con Id: ${id}`);
     } catch (error) {
+        console.log(error);
         next(error);
     }
 }

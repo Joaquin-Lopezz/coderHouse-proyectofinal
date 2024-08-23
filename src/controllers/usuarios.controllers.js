@@ -110,6 +110,30 @@ export async function editUser(req, res, next) {
     }
 }
 
+export async function deleteUsers(req, res, next) {
+    try {
+        const result = await usuariosService.deleteUsers();
+        if (!result) {
+            res.json({ message: 'no hay usuarios para eliminar' });
+        } else {
+            res.json({
+                message: `han sido eliminado ${result.deletedCount} usuarios.`,
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function allUsers(req, res, next) {
+    try {
+        const usuarios = await usuariosService.allUsers();
+        res.json(usuarios);
+    } catch (error) {
+        next(error);
+    }
+}
+
 export async function newDatos(req, res, next) {
     try {
         upload.single('profileImage')(req, res, (err) => {
@@ -118,16 +142,10 @@ export async function newDatos(req, res, next) {
                 return res.status(400).json({ error: err.message });
             }
 
-            // `req.file` contendrá el archivo cargado
-            console.log(req);
-            console.log(req.files); // Información sobre el archivo
-
-            // Maneja los datos del usuario aquí (puedes acceder a `req.body` para otros campos)
             const { nombre, apellido } = req.body;
             console.log('Nombre:', nombre);
             console.log('Apellido:', apellido);
 
-            // Respuesta exitosa
             res.json({ message: 'Datos actualizados correctamente' });
         });
     } catch (error) {
